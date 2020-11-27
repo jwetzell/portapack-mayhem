@@ -139,6 +139,10 @@ private:
 
 	static constexpr auto header_height = 1 * 16;
 
+	FrequencyField field_frequency {
+		{ 0 * 8, 0 * 16 },
+	};
+
 	RFAmpField field_rf_amp {
 		{ 13 * 8, 0 * 16 }
 	};
@@ -163,6 +167,8 @@ private:
 			this->on_packet(packet);
 		}
 	};
+
+	void update_freq(rf::Frequency f);
 
 	void on_packet(const ert::Packet& packet);
 	void on_show_list();

@@ -94,16 +94,31 @@ void RecentEntriesTable<ERTRecentEntries>::draw(
 	painter.draw_string(target_rect.location(), style, line);
 }
 
-ERTAppView::ERTAppView(NavigationView&) {
+ERTAppView::ERTAppView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_ert);
 
 	add_children({
+		&field_frequency,
 		&field_rf_amp,
 		&field_lna,
 		&field_vga,
 		&rssi,
 		&recent_entries_view,
 	});
+
+	field_frequency.set_value(initial_target_frequency);
+	field_frequency.set_step(100);
+	field_frequency.on_change = [this](rf::Frequency f) {
+		update_freq(f);
+	};
+
+	field_frequency.on_edit = [this, &nav]() {
+		auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+		new_view->on_changed = [this](rf::Frequency f) {
+			update_freq(f);
+			field_frequency.set_value(f);
+		};
+	};
 
 	radio::enable({
 		initial_target_frequency,
@@ -129,6 +144,11 @@ ERTAppView::~ERTAppView() {
 
 void ERTAppView::focus() {
 	field_vga.focus();
+
+}
+
+void ERTAppView::update_freq(rf::Frequency f) {
+	receiver_model.set_tuning_frequency(f);
 }
 
 void ERTAppView::set_parent_rect(const Rect new_parent_rect) {
